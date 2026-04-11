@@ -1,45 +1,38 @@
 import pandas as pd
-import matplotlib.pyplot as plt
-import getpass
-from log import logging
-import os
-
-class Cost:
-
-    def __init__(self):
-        pass
+import mplfinance as mpf
+from main import func_lgn
+@func_lgn
+class Apple:
     
-    @logging # Добавили декоратор
-    def processing(self):
+    def __init__(self, AAPL_csv):
+        self.AAPL_csv = AAPL_csv
+        self.data = None
+
+    def dann(self):
+        # берем данные из CSV файла
+        self.data = pd.read_csv(self.AAPL_csv, parse_dates=True, index_col='Date')
         
-        # Обработка файла
-        data = pd.read_csv('log.csv')
-        print("Прочитанные данные:")
-        print(data.head())
+        columns = ['Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume']
+        if not all(col in self.data.columns for col in columns):
+            raise ValueError("CSV файл должен содержать колонки: Date, Open, High, Low, Close, Adj Close, Volume")
 
-        # Построение гистограммы
-
-        x = data['Date'].tolist()
-        y = data['Open'].tolist()
-        y1 = data['High'].tolist()
-        y2 = data['Close'].tolist()
-        y3 = data['Low'].tolist()
-        plt.scatter(x,y1, color = 'green')
-        plt.bar(x,y)
-        plt.bar(x,y2)
-        plt.scatter(x,y3, color = 'red')
-        plt.xlabel('Дата')
-        plt.ylabel('Изменения')
-        plt.title('Гистограмма стоимости акций Apple')
-        plt.xticks(rotation=90)
-        plt.tight_layout()
-        plt.show()
+    def graff(self):
+        if self.data is None:
+            raise ValueError("Данные не загружены")
+    
+        # Построение свечного графика с использованием нужных колонок
+        mpf.plot(self.data[['Open', 'High', 'Low', 'Close']], type='candle', style='charles',
+                 title='СТОИМОСТЬ АКЦИЙ APPLE', ylabel='ЦЕНА', volume=False)
         
-# Определили функцию в main
+    
+if __name__ == "__main__":
 
-def main():
-    apple_cost = Cost()
-    apple_cost.processing()
-
-if __name__=="__main__":
-    main()
+    sp_csv = 'AAPL.csv'#путь к файлу
+    app = Apple(sp_csv)
+    
+    
+    try:
+        app.dann()
+        app.graff()
+    except Exception as e:
+        print(f"Произошла ошибка: {e}")
